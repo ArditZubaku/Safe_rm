@@ -12,12 +12,19 @@ safe_rm() {
         if [[ -d "$dir" && -d "$dir/.git" ]]; then
             echo -e "\n${YELLOW}${BOLD}Warning:${NO_COLOR} The directory '${GREEN}$dir${NO_COLOR}' is a Git repository."
 
-            # Fetching some Git repo details
             local branch=$(git -C "$dir" branch --show-current)
             local last_commit=$(git -C "$dir" log -1 --pretty=format:"%h - %s")
+            local stash_count=$(git -C "$dir" stash list | wc -l)
 
             echo "${BOLD}Current branch:${NO_COLOR} ${GREEN}${branch}${NO_COLOR}"
             echo "${BOLD}Last commit:${NO_COLOR} ${GREEN}${last_commit}${NO_COLOR}"
+
+            if [[ $stash_count -gt 0 ]]; then
+                echo "${BOLD}Stash count:${NO_COLOR} ${GREEN}${stash_count}${NO_COLOR}"
+            else
+                echo "${BOLD}Stash count:${NO_COLOR} ${RED}0${NO_COLOR}"
+            fi
+
             echo -e "${BLUE}${BOLD}Are you sure you want to delete this repository? (${GREEN}y${BLUE}/${RED}n${BLUE})${NO_COLOR}"
 
             while true; do
