@@ -9,7 +9,7 @@ NO_COLOR='\033[0m'
 
 safe_rm() {
     for dir in "$@"; do
-        if [[ -d "$dir" && -d "$dir/.git" ]]; then
+        if [[ -d "$dir" && ( (-d "$dir/.git") || (-d "$(git -C "$dir" rev-parse --git-dir)") ) ]]; then
             echo -e "\n${YELLOW}${BOLD}Warning:${NO_COLOR} The directory '${GREEN}$dir${NO_COLOR}' is a Git repository."
 
             local branch=$(git -C "$dir" branch --show-current)
@@ -50,3 +50,4 @@ safe_rm() {
 }
 
 alias rm='safe_rm'
+
