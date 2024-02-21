@@ -9,12 +9,20 @@ NO_COLOR='\033[0m'
 
 safe_rm() {
     for dir in "$@"; do
-        if [[ -d "$dir" && ( (-d "$dir/.git") || (-d "$(git -C "$dir" rev-parse --git-dir)") ) ]]; then
+        if [[ -d "$dir" && ( (-d "$dir/.git") || (-d "$(git -C "$dir" rev-parse --git-dir 2>/dev/null)") ) ]]; then
             echo -e "\n${YELLOW}${BOLD}Warning:${NO_COLOR} The directory '${GREEN}$dir${NO_COLOR}' is a Git repository."
 
-            local branch=$(git -C "$dir" branch --show-current)
-            local last_commit=$(git -C "$dir" log -1 --pretty=format:"%h - %s")
-            local stash_count=$(git -C "$dir" stash list | wc -l)
+            local branch=""
+            local last_commit=""
+            local stash_count=""
+
+            if git -C "$dir" rev-parse --is-inside-work-tree &>/dev/null; then
+                branch=$(git -C "$dir" branch --show-current)
+                last_commit=$(git -C "$dir" log -1 --pretty=format:"%h - %s")
+                stash_count=$(git -C "$dir" stash list | wc -l)
+            else
+                echo "${RED}Error:${NO_COLOR} Not a Git repository: '$dir'. Skipping Git information."
+            fi
 
             echo "${BOLD}Current branch:${NO_COLOR} ${GREEN}${branch}${NO_COLOR}"
             echo "${BOLD}Last commit:${NO_COLOR} ${GREEN}${last_commit}${NO_COLOR}"
@@ -50,4 +58,3 @@ safe_rm() {
 }
 
 alias rm='safe_rm'
-
